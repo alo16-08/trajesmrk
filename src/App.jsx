@@ -172,6 +172,7 @@ useEffect(() => {
       deposito: Number(r.deposito || 0),
       depositoPendiente: Number(r.deposito_pendiente || 0),
       depositoPorDevolver: Number(r.deposito_por_devolver || 0),
+      metodoDeposito: r.metodo_deposito || "",
       estado: r.estado || "Rentado",
     }));
 
@@ -1033,11 +1034,14 @@ setRentalInventory((prev) =>
                             <button
   className="btn-secondary"
   onClick={async () => {
+    const metodo = prompt("Método del depósito: efectivo o transferencia");
+  if (!metodo) return;
     const { error } = await supabase
       .from("rentas")
       .update({
         deposito_pendiente: 0,
         deposito_por_devolver: Number(rental.deposito || 0),
+        metodo_deposito: metodo
       })
       .eq("folio", rental.folio);
 
@@ -1054,6 +1058,7 @@ setRentalInventory((prev) =>
               ...r,
               depositoPendiente: 0,
               depositoPorDevolver: Number(rental.deposito || 0),
+              metodoDeposito: metodo,
             }
           : r
       )
@@ -1443,7 +1448,7 @@ function Field({ label, children }) {
   );
 }
 
-function Row({ folio, cliente, piezas, fechaRecogida, horaRecogida, totalRenta, anticipo, restanteRenta, deposito, depositoPendiente, depositoPorDevolver, estado, receiptLink, onReturn, onStatusChange, notas }) {
+function Row({ folio, cliente, piezas, fechaRecogida, horaRecogida, totalRenta, anticipo, restanteRenta, deposito, depositoPendiente, depositoPorDevolver, metodoDeposito, estado, receiptLink, onReturn, onStatusChange, notas }) {
   return (
     <tr className="border-t align-top">
       <td className="p-2 font-medium">{folio}</td>
@@ -1509,6 +1514,11 @@ function Row({ folio, cliente, piezas, fechaRecogida, horaRecogida, totalRenta, 
 <div className="text-sm text-slate-500">
   Pendiente: ${Number(depositoPendiente || 0)} · Devolver: ${Number(depositoPorDevolver || 0)}
 </div>
+
+<div className="text-xs text-slate-400">
+  Método: {metodoDeposito || "No registrado"}
+</div>
+
       </td>
       <td className="p-2">
         {estado === "Devuelto" ? (
