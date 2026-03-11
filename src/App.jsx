@@ -551,52 +551,28 @@ async function handleAddTie() {
   setTieForm({ color: "", caracteristicas: "" });
 }
 
-async function handleAddTie() {
-  if (!tieForm.color.trim() || !tieForm.caracteristicas.trim()) return;
+async function handleDeleteTie(item) {
+  console.log("Corbata a eliminar:", item);
 
-  const nuevaCorbata = {
-    color: tieForm.color.trim(),
-    caracteristicas: tieForm.caracteristicas.trim(),
-  };
+  const confirmar = window.confirm("¿Eliminar esta corbata?");
+  if (!confirmar) return;
 
-  if (editingTieId) {
-    const { data, error } = await supabase
-      .from("inventario_corbatas")
-      .update(nuevaCorbata)
-      .eq("id", editingTieId)
-      .select();
+  const { data, error } = await supabase
+    .from("inventario_corbatas")
+    .delete()
+    .eq("id", item.id)
+    .select();
 
-    if (error) {
-      console.error("Error actualizando corbata:", error);
-      alert("Error al actualizar corbata.");
-      return;
-    }
+  console.log("Respuesta delete:", { data, error });
 
-    if (data && data[0]) {
-      setTiesInventory((prev) =>
-        prev.map((item) => (item.id === data[0].id ? data[0] : item))
-      );
-    }
-
-    setEditingTieId(null);
-  } else {
-    const { data, error } = await supabase
-      .from("inventario_corbatas")
-      .insert([nuevaCorbata])
-      .select();
-
-    if (error) {
-      console.error("Error guardando corbata:", error);
-      alert("Error al guardar corbata.");
-      return;
-    }
-
-    if (data && data[0]) {
-      setTiesInventory((prev) => [data[0], ...prev]);
-    }
+  if (error) {
+    console.error("Error eliminando corbata:", error);
+    alert("Error al eliminar corbata: " + error.message);
+    return;
   }
 
-  setTieForm({ color: "", caracteristicas: "" });
+  setTiesInventory((prev) => prev.filter((t) => t.id !== item.id));
+  alert("Corbata eliminada");
 }
 
 function handleEditTie(item) {
