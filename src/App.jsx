@@ -129,6 +129,24 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
+  async function fetchTiesInventory() {
+    const { data, error } = await supabase
+      .from("inventario_corbatas")
+      .select("*")
+      .order("id", { ascending: false });
+
+    if (error) {
+      console.error("Error cargando corbatas:", error);
+      return;
+    }
+
+    setTiesInventory(data || []);
+  }
+
+  fetchTiesInventory();
+}, []);
+
+useEffect(() => {
   async function fetchRentalInventory() {
     const { data, error } = await supabase
       .from("inventario_renta")
@@ -190,6 +208,11 @@ useEffect(() => {
 
   const [saleInventory, setSaleInventory] = useState(initialSaleInventory);
   const [rentalInventory, setRentalInventory] = useState(initialRentalInventory);
+
+  const [tiesInventory, setTiesInventory] = useState([]);
+const [tieForm, setTieForm] = useState({ color: "", caracteristicas: "" });
+const [editingTieId, setEditingTieId] = useState(null);
+
   const [inventorySaved, setInventorySaved] = useState(false);
   const [editingSaleKey, setEditingSaleKey] = useState(null);
   const [editingRentalKey, setEditingRentalKey] = useState(null);
@@ -478,6 +501,110 @@ useEffect(() => {
   }
 
   setInventorySaved(true);
+}
+
+async function handleAddTie() {
+  if (!tieForm.color.trim() || !tieForm.caracteristicas.trim()) return;
+
+  const nuevaCorbata = {
+    color: tieForm.color.trim(),
+    caracteristicas: tieForm.caracteristicas.trim(),
+  };
+
+  if (editingTieId) {
+    const { data, error } = await supabase
+      .from("inventario_corbatas")
+      .update(nuevaCorbata)
+      .eq("id", editingTieId)
+      .select();
+
+    if (error) {
+      console.error("Error actualizando corbata:", error);
+      alert("Error al actualizar corbata.");
+      return;
+    }
+
+    if (data && data[0]) {
+      setTiesInventory((prev) =>
+        prev.map((item) => (item.id === data[0].id ? data[0] : item))
+      );
+    }
+
+    setEditingTieId(null);
+  } else {
+    const { data, error } = await supabase
+      .from("inventario_corbatas")
+      .insert([nuevaCorbata])
+      .select();
+
+    if (error) {
+      console.error("Error guardando corbata:", error);
+      alert("Error al guardar corbata.");
+      return;
+    }
+
+    if (data && data[0]) {
+      setTiesInventory((prev) => [data[0], ...prev]);
+    }
+  }
+
+  setTieForm({ color: "", caracteristicas: "" });
+}
+
+async function handleAddTie() {
+  if (!tieForm.color.trim() || !tieForm.caracteristicas.trim()) return;
+
+  const nuevaCorbata = {
+    color: tieForm.color.trim(),
+    caracteristicas: tieForm.caracteristicas.trim(),
+  };
+
+  if (editingTieId) {
+    const { data, error } = await supabase
+      .from("inventario_corbatas")
+      .update(nuevaCorbata)
+      .eq("id", editingTieId)
+      .select();
+
+    if (error) {
+      console.error("Error actualizando corbata:", error);
+      alert("Error al actualizar corbata.");
+      return;
+    }
+
+    if (data && data[0]) {
+      setTiesInventory((prev) =>
+        prev.map((item) => (item.id === data[0].id ? data[0] : item))
+      );
+    }
+
+    setEditingTieId(null);
+  } else {
+    const { data, error } = await supabase
+      .from("inventario_corbatas")
+      .insert([nuevaCorbata])
+      .select();
+
+    if (error) {
+      console.error("Error guardando corbata:", error);
+      alert("Error al guardar corbata.");
+      return;
+    }
+
+    if (data && data[0]) {
+      setTiesInventory((prev) => [data[0], ...prev]);
+    }
+  }
+
+  setTieForm({ color: "", caracteristicas: "" });
+}
+
+function handleEditTie(item) {
+  setEditingTieId(item.id);
+  setTieForm({
+    color: item.color || "",
+    caracteristicas: item.caracteristicas || "",
+  });
 }
 
   function handleCancelSaleEdit() {
@@ -1223,6 +1350,78 @@ setRentalInventory((prev) =>
                 </table>
               </div>
             </div>
+            <div className="rounded-3xl border bg-white p-6 shadow-sm">
+  <h2 className="mb-4 text-xl font-semibold">Inventario de corbatas</h2>
+
+  <div className="grid gap-4 md:grid-cols-2">
+    <div>
+      <label className="label">Color</label>
+      <input
+        className="input"
+        value={tieForm.color}
+        onChange={(e) => setTieForm((prev) => ({ ...prev, color: e.target.value }))}
+        placeholder="Color de la corbata"
+      />
+    </div>
+
+    <div>
+      <label className="label">Características</label>
+      <input
+        className="input"
+        value={tieForm.caracteristicas}
+        onChange={(e) =>
+          setTieForm((prev) => ({ ...prev, caracteristicas: e.target.value }))
+        }
+        placeholder="Ej. lisa, satinada, rayas, vino..."
+      />
+    </div>
+  </div>
+
+  <div className="mt-4">
+    <button type="button" className="btn-primary" onClick={handleAddTie}>
+      {editingTieId ? "Guardar cambios" : "Agregar corbata"}
+    </button>
+  </div>
+
+  <div className="mt-6 overflow-x-auto">
+    <table className="w-full text-sm">
+      <thead className="text-slate-500">
+        <tr>
+          <th className="p-2 text-left">Color</th>
+          <th className="p-2 text-left">Características</th>
+          <th className="p-2 text-left">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {tiesInventory.map((item) => (
+          <tr key={item.id} className="border-t">
+            <td className="p-2">{item.color}</td>
+            <td className="p-2">{item.caracteristicas}</td>
+            <td className="p-2">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => handleEditTie(item)}
+                >
+                  Editar
+                </button>
+
+                <button
+                  type="button"
+                  className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                  onClick={() => handleDeleteTie(item)}
+                >
+                  🗑
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
           </div>
         )}
 
