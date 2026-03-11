@@ -79,7 +79,9 @@ export default function TrajesRentasPreview() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loginUser, setLoginUser] = useState("");
   const [loginPass, setLoginPass] = useState("");
-  const [adminPassword, setAdminPassword] = useState("1234");
+  const [adminPassword, setAdminPassword] = useState(() => {
+  return localStorage.getItem("adminPassword") || "1234";
+});
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [secretCode, setSecretCode] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
@@ -921,6 +923,8 @@ setRentalInventory((prev) =>
                                 return;
                               }
                               setAdminPassword(newAdminPassword);
+                              localStorage.setItem("adminPassword", newAdminPassword);
+
                               setSecretCode("");
                               setNewAdminPassword("");
                               setConfirmAdminPassword("");
