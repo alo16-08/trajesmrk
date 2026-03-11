@@ -1452,7 +1452,7 @@ function Row({ folio, cliente, piezas, fechaRecogida, horaRecogida, totalRenta, 
   return (
     <tr className="border-t align-top">
       <td className="p-2 font-medium">{folio}</td>
-      <td className="p-2">{cliente}</td>
+      <td className="p-2">{cliente || "-"}</td>
       <td className="p-2 min-w-[260px]">
         <div className="space-y-2">
           <div className="rounded-xl bg-slate-50 px-3 py-2">
